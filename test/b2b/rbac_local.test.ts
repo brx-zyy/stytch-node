@@ -91,12 +91,14 @@ describe("PolicyCache", () => {
     let resolveCurrent: (value: { policy: typeof currentPolicy }) => void;
     const staleResponse = new Promise<{ policy: typeof stalePolicy }>(
       (resolve) => {
-      resolveStale = resolve;
-    });
+        resolveStale = resolve;
+      }
+    );
     const currentResponse = new Promise<{ policy: typeof currentPolicy }>(
       (resolve) => {
-      resolveCurrent = resolve;
-    });
+        resolveCurrent = resolve;
+      }
+    );
 
     policySpy.policy
       .mockReturnValueOnce(staleResponse)
