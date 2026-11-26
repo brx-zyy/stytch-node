@@ -83,9 +83,7 @@ describe("PolicyCache", () => {
     const stalePolicy = MOCK_RBAC_POLICY;
     const currentPolicy = {
       ...MOCK_RBAC_POLICY,
-      roles: MOCK_RBAC_POLICY.roles.filter(
-        (role) => role.role_id !== "editor"
-      ),
+      roles: MOCK_RBAC_POLICY.roles.filter((role) => role.role_id !== "editor"),
     };
     let resolveStale: (value: { policy: typeof stalePolicy }) => void;
     let resolveCurrent: (value: { policy: typeof currentPolicy }) => void;
@@ -113,9 +111,9 @@ describe("PolicyCache", () => {
     await staleRefresh;
 
     const cachedPolicy = await policyCache.getPolicy();
-    expect(
-      cachedPolicy.roles.some((role) => role.role_id === "editor")
-    ).toBe(true);
+    expect(cachedPolicy.roles.some((role) => role.role_id === "editor")).toBe(
+      true
+    );
 
     // The stale snapshot still grants the editor role permission to write documents.
     expect(() =>
@@ -140,17 +138,19 @@ describe("PolicyCache", () => {
       ),
     };
     let resolveStale: (value: { org_policy: typeof staleOrgPolicy }) => void;
-    let resolveCurrent: (value: { org_policy: typeof currentOrgPolicy }) => void;
+    let resolveCurrent: (value: {
+      org_policy: typeof currentOrgPolicy;
+    }) => void;
     const staleResponse = new Promise<{ org_policy: typeof staleOrgPolicy }>(
       (resolve) => {
         resolveStale = resolve;
       }
     );
-    const currentResponse = new Promise<{ org_policy: typeof currentOrgPolicy }>(
-      (resolve) => {
-        resolveCurrent = resolve;
-      }
-    );
+    const currentResponse = new Promise<{
+      org_policy: typeof currentOrgPolicy;
+    }>((resolve) => {
+      resolveCurrent = resolve;
+    });
 
     policySpy.organizations.getOrgPolicy
       .mockReturnValueOnce(staleResponse)
