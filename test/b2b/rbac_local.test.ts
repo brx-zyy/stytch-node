@@ -89,10 +89,12 @@ describe("PolicyCache", () => {
     };
     let resolveStale: (value: { policy: typeof stalePolicy }) => void;
     let resolveCurrent: (value: { policy: typeof currentPolicy }) => void;
-    const staleResponse = new Promise<{ policy: typeof stalePolicy }>(\n      (resolve) => {
+    const staleResponse = new Promise<{ policy: typeof stalePolicy }>(
+      (resolve) => {
       resolveStale = resolve;
     });
-    const currentResponse = new Promise<{ policy: typeof currentPolicy }>(\n      (resolve) => {
+    const currentResponse = new Promise<{ policy: typeof currentPolicy }>(
+      (resolve) => {
       resolveCurrent = resolve;
     });
 
@@ -109,7 +111,9 @@ describe("PolicyCache", () => {
     await staleRefresh;
 
     const cachedPolicy = await policyCache.getPolicy();
-    expect(\n      cachedPolicy.roles.some((role) => role.role_id === "editor")\n    ).toBe(true);
+    expect(
+      cachedPolicy.roles.some((role) => role.role_id === "editor")
+    ).toBe(true);
 
     // The stale snapshot still grants the editor role permission to write documents.
     expect(() =>
@@ -129,16 +133,22 @@ describe("PolicyCache", () => {
   it("reproduces an out-of-order organization-policy refresh", async () => {
     const staleOrgPolicy = { roles: MOCK_RBAC_POLICY.roles };
     const currentOrgPolicy = {
-      roles: MOCK_RBAC_POLICY.roles.filter(\n        (role) => role.role_id !== "organization_admin"\n      ),
+      roles: MOCK_RBAC_POLICY.roles.filter(
+        (role) => role.role_id !== "organization_admin"
+      ),
     };
     let resolveStale: (value: { org_policy: typeof staleOrgPolicy }) => void;
     let resolveCurrent: (value: { org_policy: typeof currentOrgPolicy }) => void;
-    const staleResponse = new Promise<{ org_policy: typeof staleOrgPolicy }>((resolve) => {
-      resolveStale = resolve;
-    });
-    const currentResponse = new Promise<{ org_policy: typeof currentOrgPolicy }>((resolve) => {
-      resolveCurrent = resolve;
-    });
+    const staleResponse = new Promise<{ org_policy: typeof staleOrgPolicy }>(
+      (resolve) => {
+        resolveStale = resolve;
+      }
+    );
+    const currentResponse = new Promise<{ org_policy: typeof currentOrgPolicy }>(
+      (resolve) => {
+        resolveCurrent = resolve;
+      }
+    );
 
     policySpy.organizations.getOrgPolicy
       .mockReturnValueOnce(staleResponse)
@@ -153,7 +163,9 @@ describe("PolicyCache", () => {
     await staleRefresh;
 
     const cached = await policyCache.getOrgPolicy(organizationID);
-    expect(\n      cached.roles.some((role) => role.role_id === "organization_admin")\n    ).toBe(true);
+    expect(
+      cached.roles.some((role) => role.role_id === "organization_admin")
+    ).toBe(true);
     expect(policySpy.organizations.getOrgPolicy).toHaveBeenCalledTimes(2);
   });
 
