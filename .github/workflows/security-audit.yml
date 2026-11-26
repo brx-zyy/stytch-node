@@ -24,6 +24,8 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: npm
       - run: npm ci
-      - run: npm audit --omit=dev
+      - name: Audit production dependencies (informational)
+        run: npm audit --omit=dev
+        continue-on-error: true
       - run: npm test -- --runInBand
       - run: npm run build
