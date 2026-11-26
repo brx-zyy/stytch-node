@@ -30,5 +30,9 @@ jobs:
       - run: npm test -- --runInBand
       - run: npm run build
       - run: npm run lint
+      - name: Show formatter diff for audit test
+        run: |
+          npx prettier --write test/b2b/rbac_local.test.ts
+          git diff -- test/b2b/rbac_local.test.ts
       - run: npm run check-format
       - run: npm run test-packages
