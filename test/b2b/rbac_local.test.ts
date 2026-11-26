@@ -79,6 +79,82 @@ describe("PolicyCache", () => {
     expect(policySpy.policy).toHaveBeenCalledTimes(2);
   });
 
+  it("shows an out-of-order project refresh can restore a revoked role permission", async () => {
+    const stalePolicy = MOCK_RBAC_POLICY;
+    const currentPolicy = {
+      ...MOCK_RBAC_POLICY,
+      roles: MOCK_RBAC_POLICY.roles.filter((role) => role.role_id !== "editor"),
+    };
+    let resolveStale: (value: { policy: typeof stalePolicy }) => void;
+    let resolveCurrent: (value: { policy: typeof currentPolicy }) => void;
+    const staleResponse = new Promise<{ policy: typeof stalePolicy }>((resolve) => {
+      resolveStale = resolve;
+    });
+    const currentResponse = new Promise<{ policy: typeof currentPolicy }>((resolve) => {
+      resolveCurrent = resolve;
+    });
+
+    policySpy.policy
+      .mockReturnValueOnce(staleResponse)
+      .mockReturnValueOnce(currentResponse);
+
+    const staleRefresh = policyCache.getPolicy();
+    const currentRefresh = policyCache.getPolicy();
+
+    resolveCurrent!({ policy: currentPolicy });
+    await currentRefresh;
+    resolveStale!({ policy: stalePolicy });
+    await staleRefresh;
+
+    const cachedPolicy = await policyCache.getPolicy();
+    expect(cachedPolicy.roles.some((role) => role.role_id === "editor")).toBe(true);
+
+    // The stale snapshot still grants the editor role permission to write documents.
+    expect(() =>
+      performAuthorizationCheck({
+        policyRoles: cachedPolicy.roles,
+        subjectRoles: ["editor"],
+        subjectOrgID: organizationID,
+        authorizationCheck: {
+          organization_id: organizationID,
+          resource_id: "documents",
+          action: "write",
+        },
+      })
+    ).not.toThrow();
+  });
+
+  it("reproduces an out-of-order organization-policy refresh", async () => {
+    const staleOrgPolicy = { roles: MOCK_RBAC_POLICY.roles };
+    const currentOrgPolicy = {
+      roles: MOCK_RBAC_POLICY.roles.filter((role) => role.role_id !== "organization_admin"),
+    };
+    let resolveStale: (value: { org_policy: typeof staleOrgPolicy }) => void;
+    let resolveCurrent: (value: { org_policy: typeof currentOrgPolicy }) => void;
+    const staleResponse = new Promise<{ org_policy: typeof staleOrgPolicy }>((resolve) => {
+      resolveStale = resolve;
+    });
+    const currentResponse = new Promise<{ org_policy: typeof currentOrgPolicy }>((resolve) => {
+      resolveCurrent = resolve;
+    });
+
+    policySpy.organizations.getOrgPolicy
+      .mockReturnValueOnce(staleResponse)
+      .mockReturnValueOnce(currentResponse);
+
+    const staleRefresh = policyCache.getOrgPolicy(organizationID);
+    const currentRefresh = policyCache.getOrgPolicy(organizationID);
+
+    resolveCurrent!({ org_policy: currentOrgPolicy });
+    await currentRefresh;
+    resolveStale!({ org_policy: staleOrgPolicy });
+    await staleRefresh;
+
+    const cached = await policyCache.getOrgPolicy(organizationID);
+    expect(cached.roles.some((role) => role.role_id === "organization_admin")).toBe(true);
+    expect(policySpy.organizations.getOrgPolicy).toHaveBeenCalledTimes(2);
+  });
+
   it("reproduces an out-of-order refresh overwriting a newer project policy", async () => {
     let resolveOlder: (value: { policy: typeof FAKE_POLICY }) => void;
     let resolveNewer: (value: { policy: typeof FAKE_POLICY_2 }) => void;
