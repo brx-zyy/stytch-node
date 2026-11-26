@@ -83,14 +83,16 @@ describe("PolicyCache", () => {
     const stalePolicy = MOCK_RBAC_POLICY;
     const currentPolicy = {
       ...MOCK_RBAC_POLICY,
-      roles: MOCK_RBAC_POLICY.roles.filter((role) => role.role_id !== "editor"),
+      roles: MOCK_RBAC_POLICY.roles.filter(
+        (role) => role.role_id !== "editor"
+      ),
     };
     let resolveStale: (value: { policy: typeof stalePolicy }) => void;
     let resolveCurrent: (value: { policy: typeof currentPolicy }) => void;
-    const staleResponse = new Promise<{ policy: typeof stalePolicy }>((resolve) => {
+    const staleResponse = new Promise<{ policy: typeof stalePolicy }>(\n      (resolve) => {
       resolveStale = resolve;
     });
-    const currentResponse = new Promise<{ policy: typeof currentPolicy }>((resolve) => {
+    const currentResponse = new Promise<{ policy: typeof currentPolicy }>(\n      (resolve) => {
       resolveCurrent = resolve;
     });
 
@@ -107,7 +109,7 @@ describe("PolicyCache", () => {
     await staleRefresh;
 
     const cachedPolicy = await policyCache.getPolicy();
-    expect(cachedPolicy.roles.some((role) => role.role_id === "editor")).toBe(true);
+    expect(\n      cachedPolicy.roles.some((role) => role.role_id === "editor")\n    ).toBe(true);
 
     // The stale snapshot still grants the editor role permission to write documents.
     expect(() =>
@@ -127,7 +129,7 @@ describe("PolicyCache", () => {
   it("reproduces an out-of-order organization-policy refresh", async () => {
     const staleOrgPolicy = { roles: MOCK_RBAC_POLICY.roles };
     const currentOrgPolicy = {
-      roles: MOCK_RBAC_POLICY.roles.filter((role) => role.role_id !== "organization_admin"),
+      roles: MOCK_RBAC_POLICY.roles.filter(\n        (role) => role.role_id !== "organization_admin"\n      ),
     };
     let resolveStale: (value: { org_policy: typeof staleOrgPolicy }) => void;
     let resolveCurrent: (value: { org_policy: typeof currentOrgPolicy }) => void;
@@ -151,7 +153,7 @@ describe("PolicyCache", () => {
     await staleRefresh;
 
     const cached = await policyCache.getOrgPolicy(organizationID);
-    expect(cached.roles.some((role) => role.role_id === "organization_admin")).toBe(true);
+    expect(\n      cached.roles.some((role) => role.role_id === "organization_admin")\n    ).toBe(true);
     expect(policySpy.organizations.getOrgPolicy).toHaveBeenCalledTimes(2);
   });
 
