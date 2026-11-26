@@ -174,12 +174,16 @@ describe("PolicyCache", () => {
   it("reproduces an out-of-order refresh overwriting a newer project policy", async () => {
     let resolveOlder: (value: { policy: typeof FAKE_POLICY }) => void;
     let resolveNewer: (value: { policy: typeof FAKE_POLICY_2 }) => void;
-    const olderResponse = new Promise<{ policy: typeof FAKE_POLICY }>((resolve) => {
-      resolveOlder = resolve;
-    });
-    const newerResponse = new Promise<{ policy: typeof FAKE_POLICY_2 }>((resolve) => {
-      resolveNewer = resolve;
-    });
+    const olderResponse = new Promise<{ policy: typeof FAKE_POLICY }>(
+      (resolve) => {
+        resolveOlder = resolve;
+      }
+    );
+    const newerResponse = new Promise<{ policy: typeof FAKE_POLICY_2 }>(
+      (resolve) => {
+        resolveNewer = resolve;
+      }
+    );
 
     policySpy.policy
       .mockReturnValueOnce(olderResponse)
