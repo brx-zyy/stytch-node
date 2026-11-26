@@ -79,6 +79,35 @@ describe("PolicyCache", () => {
     expect(policySpy.policy).toHaveBeenCalledTimes(2);
   });
 
+  it("reproduces an out-of-order refresh overwriting a newer project policy", async () => {
+    let resolveOlder: (value: { policy: typeof FAKE_POLICY }) => void;
+    let resolveNewer: (value: { policy: typeof FAKE_POLICY_2 }) => void;
+    const olderResponse = new Promise<{ policy: typeof FAKE_POLICY }>((resolve) => {
+      resolveOlder = resolve;
+    });
+    const newerResponse = new Promise<{ policy: typeof FAKE_POLICY_2 }>((resolve) => {
+      resolveNewer = resolve;
+    });
+
+    policySpy.policy
+      .mockReturnValueOnce(olderResponse)
+      .mockReturnValueOnce(newerResponse);
+
+    // Two callers observe an expired/empty cache and start independent refreshes.
+    const olderRefresh = policyCache.getPolicy();
+    const newerRefresh = policyCache.getPolicy();
+
+    // The newer server snapshot returns first, followed by the older snapshot.
+    resolveNewer!({ policy: FAKE_POLICY_2 });
+    await newerRefresh;
+    resolveOlder!({ policy: FAKE_POLICY });
+    await olderRefresh;
+
+    // The older response overwrites the newer snapshot and is considered fresh for 5 minutes.
+    await expect(policyCache.getPolicy()).resolves.toBe(FAKE_POLICY);
+    expect(policySpy.policy).toHaveBeenCalledTimes(2);
+  });
+
   it("Updates the org policy cache after MAX_AGE_MS time elapses", async () => {
     policySpy.organizations.getOrgPolicy
       .mockResolvedValueOnce({ org_policy: FAKE_ORG_POLICY })
