@@ -29,3 +29,6 @@ jobs:
         continue-on-error: true
       - run: npm test -- --runInBand
       - run: npm run build
+      - run: npm run lint
+      - run: npm run check-format
+      - run: npm run test-packages
